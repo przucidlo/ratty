@@ -11,12 +11,15 @@ env:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v3
-    - name: Build
+
+    - name: Build node project
+      working-directory: ./services/node/src/
       run: cargo build --verbose
-    - name: Run tests
+
+    - name: Run tests in node project
+      working-directory: ./services/node/src/
       run: cargo test --verbose
