@@ -21,6 +21,7 @@ async fn authorize(
     match state
         .authorization_service
         .authorize(&payload.username, &payload.password)
+        .await
     {
         Ok(token) => Ok(token),
         Err(_) => Err(StatusCode::FORBIDDEN),

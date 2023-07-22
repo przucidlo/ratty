@@ -22,8 +22,16 @@ impl AuthorizationService {
         }
     }
 
-    pub fn authorize(&self, username: &str, password: &str) -> Result<String, AuthorizationError> {
-        match &self.authentication_service.authenticate(username, password) {
+    pub async fn authorize(
+        &self,
+        username: &str,
+        password: &str,
+    ) -> Result<String, AuthorizationError> {
+        match &self
+            .authentication_service
+            .authenticate(username, password)
+            .await
+        {
             Ok(user) => {
                 let payload = UserTokenPayload {
                     user_id: user.id().to_owned(),

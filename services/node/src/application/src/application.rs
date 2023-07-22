@@ -1,7 +1,9 @@
 use std::sync::Arc;
 
 use infrastructure::{
-    config::config_factory::ConfigFactory, cryptography::rsa_jwt_factory::RsaJwtFactory,
+    config::config_factory::ConfigFactory,
+    cryptography::{hashing::hashing_service::HashingService, rsa_jwt_factory::RsaJwtFactory},
+    infrastructure::Infrastructure,
 };
 
 use crate::{
@@ -12,19 +14,32 @@ use crate::{
 pub struct Application {
     pub authentication_service: Arc<AuthenticationService>,
     pub authorization_service: Arc<AuthorizationService>,
+    pub user_service: Arc<UserService>,
 }
 
-impl Default for Application {
-    fn default() -> Self {
+impl Application {
+    pub async fn new() -> Self {
+        let infrastructure = Infrastructure::new().await;
+
         let config = ConfigFactory::build();
 
         let jwt_factory = Arc::new(RsaJwtFactory::new(
             config.auth_rsa_public_key.to_owned(),
             config.auth_rsa_private_key.to_owned(),
         ));
-        let user_service = Arc::new(UserService::new());
 
-        let authentication_service = Arc::new(AuthenticationService::new(user_service.clone()));
+        let hashing_service = Arc::new(HashingService::new());
+
+        let user_service = Arc::new(UserService::new(
+            infrastructure.user_repository.clone(),
+            hashing_service.clone(),
+        ));
+
+        let authentication_service = Arc::new(AuthenticationService::new(
+            user_service.clone(),
+            hashing_service.clone(),
+        ));
+
         let authorization_service = Arc::new(AuthorizationService::new(
             jwt_factory.clone(),
             authentication_service.clone(),
@@ -33,6 +48,7 @@ impl Default for Application {
         Self {
             authorization_service,
             authentication_service,
+            user_service,
         }
     }
 }

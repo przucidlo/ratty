@@ -13,6 +13,7 @@ impl ConfigFactory {
         Config {
             auth_rsa_public_key: Self::env(ConfigKey::AuthRsaPublicKey).replace("/\\n/g", "\n"),
             auth_rsa_private_key: Self::env(ConfigKey::AuthRsaPrivateKey).replace("/\\n/g", "\n"),
+            mysql_connection_url: Self::env(ConfigKey::MysqlConnectionUrl),
         }
     }
 
