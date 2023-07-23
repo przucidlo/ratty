@@ -1,9 +1,12 @@
-use std::{error::Error, sync::Arc};
+use std::sync::Arc;
 
 use domain::user::user::User;
 use infrastructure::{
-    cryptography::hashing::hashing_service::HashingService, user::user_repository::UserRepository,
+    cryptography::hashing::hashing_service::HashingService,
+    user::{user_errors::UserInfrastructureError, user_repository::UserRepository},
 };
+
+use super::user_errors::AddUserError;
 
 pub struct UserService {
     user_repository: Arc<UserRepository>,
@@ -18,25 +21,24 @@ impl UserService {
         }
     }
 
-    pub async fn get_user_by_username(&self, username: &str) -> Result<User, Box<dyn Error>> {
-        let user = self.user_repository.find_by_username(username).await;
-
-        match user {
-            Ok(user) => Ok(user),
-            Err(_) => todo!(),
-        }
+    pub async fn get_user_by_username(
+        &self,
+        username: &str,
+    ) -> Result<User, UserInfrastructureError> {
+        self.user_repository.find_by_username(username).await
     }
 
-    pub async fn add_user(&self, username: &str, password: &str) -> Result<User, Box<dyn Error>> {
+    pub async fn add_user(&self, username: &str, password: &str) -> Result<User, AddUserError> {
         let user = self.user_repository.find_by_username(username).await;
         let hashed_password = self.hashing_service.hash(&password).unwrap();
 
         match user {
-            Ok(_) => todo!(),
+            Ok(_) => Err(AddUserError::UserAlreadyExistsError),
             Err(_) => Ok(self
                 .user_repository
                 .insert(User::new(username, &hashed_password))
-                .await?),
+                .await
+                .map_err(|_| AddUserError::UserRepositoryFailureError)?),
         }
     }
 }

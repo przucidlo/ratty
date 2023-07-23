@@ -1,4 +1,6 @@
 # Changelog
+## (23.07.2023) 0.2.1:
+- fix: panic on register and authorize endpoints
 
 ## (22.07.2023) 0.2.0:
 - feat: user registration and password encryption

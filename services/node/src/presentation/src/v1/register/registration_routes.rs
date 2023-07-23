@@ -1,3 +1,4 @@
+use application::user::user_errors::AddUserError;
 use axum::{extract::Json, extract::State, http::StatusCode, routing::post, Router};
 use serde::Deserialize;
 
@@ -26,6 +27,9 @@ async fn register(
 
     match user {
         Ok(_) => StatusCode::CREATED,
-        Err(_) => StatusCode::INTERNAL_SERVER_ERROR,
+        Err(err) => match err {
+            AddUserError::UserAlreadyExistsError => StatusCode::CONFLICT,
+            AddUserError::UserRepositoryFailureError => StatusCode::INTERNAL_SERVER_ERROR,
+        },
     }
 }
