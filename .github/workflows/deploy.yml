@@ -1,0 +1,40 @@
+name: Deploy 
+
+on:
+  push:
+    tags:
+      - '**'
+    workflow_dispatch:
+env:
+  CARGO_TERM_COLOR: always
+  SERVICE_NAME: ratty
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Build image
+      working-directory: ./services/node/src/
+      run: |
+        docker build -t ${{env.SERVICE_NAME}}:latest .
+        docker save -o ./${{env.SERVICE_NAME}}.tar ${{env.SERVICE_NAME}}:latest
+    
+    - name: Create SSH key 
+      working-directory: ./services/node/src/
+      run: |
+        install -m 600 -D /dev/null ~/.ssh/id_rsa
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        echo "${{ secrets.SSH_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+ 
+    - name: Upload image to remote machine 
+      working-directory: ./services/node/src/
+      run: rsync -rvz 'ssh -p ${{ secrets.DEPLOY_PORT }}' --progress ./${{env.SERVICE_NAME}}.tar ${{secrets.DEPLOY_USER}}@${{secrets.DEPLOY_HOST}}:/images/
+    
+    - name: Restart service on remote machine 
+      working-directory: ./services/node/src/
+      run: |
+        ssh -p ${{ secrets.DEPLOY_PORT }} ${{secrets.DEPLOY_USER}}@${{secrets.DEPLOY_HOST}}
+        docker load -i ./images/${{env.SERVICE_NAME}}.tar
+        systemctl restart ${{ env.SERVICE_NAME }} 
