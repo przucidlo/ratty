@@ -21,12 +21,12 @@ jobs:
  #        docker build -t ${{env.SERVICE_NAME}}:latest .
  #        docker save -o ./${{env.SERVICE_NAME}}.tar ${{env.SERVICE_NAME}}:latest
  #    
- #    - name: Create SSH key 
- #      working-directory: ./services/node/src/
- #      run: |
- #        install -m 600 -D /dev/null ~/.ssh/id_rsa
- #        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
- #        echo "${{ secrets.SSH_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+    - name: Create SSH key 
+      working-directory: ./services/node/src/
+      run: |
+        install -m 600 -D /dev/null ~/.ssh/id_rsa
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        echo "${{ secrets.SSH_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
  # 
  #    - name: Upload image to remote machine 
  #      working-directory: ./services/node/src/
