@@ -37,4 +37,4 @@ jobs:
       run: |
         ssh -p ${{ secrets.DEPLOY_PORT }} ${{secrets.DEPLOY_USER}}@${{secrets.DEPLOY_HOST}}
         docker load -i ./images/${{env.SERVICE_NAME}}.tar
-        systemctl restart ${{ env.SERVICE_NAME }} 
+        systemctl --user restart ${{ env.SERVICE_NAME }} 
