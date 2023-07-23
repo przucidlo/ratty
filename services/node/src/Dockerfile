@@ -14,6 +14,8 @@ RUN cargo build --release
 
 FROM alpine:3.18.2 AS ratty-prod
 
+RUN apk update && apk add gcc
+
 WORKDIR /opt/ratty/
 
 COPY --from=ratty-build /opt/ratty/target/release/presentation .
