@@ -32,7 +32,7 @@ async fn main() {
         .nest("/v1/register", registration_routes::new())
         .with_state(state);
 
-    axum::Server::bind(&"0.0.0.0:3000".parse().unwrap())
+    axum::Server::bind(&"0.0.0.0:8080".parse().unwrap())
         .serve(app.into_make_service())
         .await
         .unwrap();
