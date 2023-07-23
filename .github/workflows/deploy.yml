@@ -10,27 +10,27 @@ env:
   SERVICE_NAME: ratty
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
 
- #    - name: Build image
- #      working-directory: ./services/node/src/
- #      run: |
- #        docker build -t ${{env.SERVICE_NAME}}:latest .
- #        docker save -o ./${{env.SERVICE_NAME}}.tar ${{env.SERVICE_NAME}}:latest
- #    
+    - name: Build image
+      working-directory: ./services/node/src/
+      run: |
+        docker build -t ${{env.SERVICE_NAME}}:latest .
+        docker save -o ./${{env.SERVICE_NAME}}.tar ${{env.SERVICE_NAME}}:latest
+    
     - name: Create SSH key 
       working-directory: ./services/node/src/
       run: |
         install -m 600 -D /dev/null ~/.ssh/id_rsa
         echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
         echo "${{ secrets.SSH_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
- # 
- #    - name: Upload image to remote machine 
- #      working-directory: ./services/node/src/
- #      run: rsync -rvz -e 'ssh -p ${{ secrets.DEPLOY_PORT }}' --progress ./${{env.SERVICE_NAME}}.tar ${{secrets.DEPLOY_USER}}@${{secrets.DEPLOY_HOST}}:/home/${{ secrets.DEPLOY_USER }}/images/
+
+    - name: Upload image to remote machine 
+      working-directory: ./services/node/src/
+      run: rsync -rvz -e 'ssh -p ${{ secrets.DEPLOY_PORT }}' --progress ./${{env.SERVICE_NAME}}.tar ${{secrets.DEPLOY_USER}}@${{secrets.DEPLOY_HOST}}:/home/${{ secrets.DEPLOY_USER }}/images/
     
     - name: Restart service on remote machine 
       working-directory: ./services/node/src/
