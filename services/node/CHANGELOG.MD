@@ -1,4 +1,7 @@
 # Changelog
+## (31.07.2023) 0.3.0:
+- feat: unified response body 
+
 ## (23.07.2023) 0.2.1:
 - fix: panic on register and authorize endpoints
 
