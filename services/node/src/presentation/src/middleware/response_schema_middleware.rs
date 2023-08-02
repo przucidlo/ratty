@@ -81,4 +81,3 @@ fn build_failure_body(status: StatusCode) -> String {
     })
     .unwrap()
 }
-

@@ -10,6 +10,7 @@ use v1::{
 
 use axum::middleware as axum_middleware;
 
+pub mod extractors;
 pub mod middleware;
 pub mod state;
 pub mod v1;
