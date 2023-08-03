@@ -1,5 +1,5 @@
 use application::user::user_errors::AddUserError;
-use axum::{extract::Json, extract::State, http::StatusCode, routing::post, Router};
+use axum::{extract::State, http::StatusCode, routing::post, Router};
 use garde::Validate;
 use serde::Deserialize;
 
