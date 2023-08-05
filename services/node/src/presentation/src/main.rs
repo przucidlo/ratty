@@ -1,15 +1,13 @@
 use application::application::Application;
 use axum::Router;
 use dotenvy::dotenv;
-use middleware::response_schema_middleware::response_schema_middleware;
 use state::ApplicationState;
 use v1::{
     authorize::state::AuthorizationState,
     register::{registration_routes, registration_state::RegistrationState},
 };
 
-use axum::middleware as axum_middleware;
-
+pub mod errors;
 pub mod extractors;
 pub mod middleware;
 pub mod state;
@@ -35,8 +33,7 @@ async fn main() {
     let app: Router = Router::new()
         .nest("/v1/authorize", AuthorizationRouter::new())
         .nest("/v1/register", registration_routes::new())
-        .with_state(state)
-        .route_layer(axum_middleware::from_fn(response_schema_middleware));
+        .with_state(state);
 
     axum::Server::bind(&"0.0.0.0:8080".parse().unwrap())
         .serve(app.into_make_service())

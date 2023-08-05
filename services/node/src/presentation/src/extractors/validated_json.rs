@@ -8,8 +8,10 @@ use axum::{
     BoxError,
 };
 use garde::{Errors, Unvalidated, Validate};
-use serde::{de::DeserializeOwned, Serialize};
-use serde_json::{value, Map};
+use serde::de::DeserializeOwned;
+use serde_json::{Map, Value};
+
+use crate::errors::json_response_error::JsonResponseError;
 
 pub struct ValidatedJson<T>(pub T);
 
@@ -22,7 +24,7 @@ where
     S: Send + Sync,
     T: DeserializeOwned + Validate<Context = ()>,
 {
-    type Rejection = Response;
+    type Rejection = JsonResponseError;
 
     async fn from_request(req: Request<B>, state: &S) -> Result<Self, Self::Rejection> {
         let body = Bytes::from_request(req, state)
@@ -36,28 +38,70 @@ where
                 match value {
                     Ok(value) => Ok(Self(value.into_inner())),
                     Err(err) => {
-                        println!("{err}");
+                        let json = garde_errors_to_json(err);
 
-                        panic!()
-                        // Err(Response::new(err.flatten().to_vec))
+                        Err(JsonResponseError::from_validation_errors(json))
                     }
                 }
             }
-            Err(_) => panic!(),
+            Err(err) => Err(JsonResponseError::from_str(500, &err.to_string())),
         }
     }
 }
 
-fn garde_errors_to_json(errors: Errors) -> String {
-    let json = Map::new();
-    // fn inner_errors_to_json(error: Error)
+fn garde_errors_to_json(errors: Errors) -> Value {
+    fn inner_errors_to_json(out: &mut Value, keys: Vec<String>, errors: &Errors) {
+        match errors {
+            Errors::Simple(errors) => {
+                let value = traverse_with_create(out, keys);
+                let messages = errors
+                    .iter()
+                    .map(|e| Value::String(e.message.to_string()))
+                    .collect();
 
-    match errors {
-        Errors::Simple(errors) => todo!(),
-        Errors::Nested { outer, inner } => todo!(),
-        Errors::List(_) => todo!(),
-        Errors::Fields(_) => todo!(),
-    };
+                *value = Value::Array(messages);
+            }
+            Errors::Nested { outer, inner } => {
+                inner_errors_to_json(out, keys.clone(), inner);
+                inner_errors_to_json(out, keys, outer);
+            }
+            Errors::List(errors) => {
+                for (i, errors) in errors.iter().enumerate() {
+                    let mut new_keys = keys.clone();
+                    new_keys.push(i.to_string());
 
-    serde_json::Value::Object(json).to_string();
+                    inner_errors_to_json(out, new_keys, errors)
+                }
+            }
+            Errors::Fields(errors) => {
+                for (key, errors) in errors.iter() {
+                    let mut extended_keys = keys.clone();
+                    extended_keys.push(key.to_string());
+
+                    inner_errors_to_json(out, extended_keys, errors)
+                }
+            }
+        };
+    }
+
+    fn traverse_with_create(out: &mut Value, keys: Vec<String>) -> &mut Value {
+        fn get_or_create(out: &mut Value, key: String) -> &mut Value {
+            match out.as_object_mut() {
+                Some(value) => value.entry(key).or_insert_with(|| Value::Null),
+                None => panic!(),
+            }
+        }
+
+        let value = keys.iter().fold(out, |previous, next| {
+            get_or_create(previous, next.to_owned())
+        });
+
+        value
+    }
+
+    let mut json = Value::Object(Map::new());
+
+    inner_errors_to_json(&mut json, vec![], &errors);
+
+    json
 }
