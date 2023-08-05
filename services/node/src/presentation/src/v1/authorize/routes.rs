@@ -1,3 +1,4 @@
+use application::authorization::authorization_service::Token;
 use axum::{extract::Json, extract::State, http::StatusCode, routing::post, Router};
 use serde::Deserialize;
 
@@ -17,13 +18,13 @@ pub fn new() -> Router<ApplicationState> {
 async fn authorize(
     State(state): State<AuthorizationState>,
     Json(payload): Json<AuthorizeDto>,
-) -> Result<String, StatusCode> {
+) -> Result<Json<Token>, StatusCode> {
     match state
         .authorization_service
         .authorize(&payload.username, &payload.password)
         .await
     {
-        Ok(token) => Ok(token),
+        Ok(token) => Ok(Json(token)),
         Err(_) => Err(StatusCode::FORBIDDEN),
     }
 }
