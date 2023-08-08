@@ -25,10 +25,6 @@ When('I try to create my account', function () {
   })
 });
 
-// Then('I should receive a successful status {int} response', function (int) {
-//   assert(this.response.status === int, `Status was different than ${int}`);
-// });
-
 Then('I should receive a status {int} response', function (int) {
   assert(this.response.status === int, `Status ${this.response.status} was different than ${int}`);
 });
