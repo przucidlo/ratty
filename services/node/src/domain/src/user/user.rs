@@ -14,11 +14,11 @@ impl User {
         }
     }
 
-    pub fn new_existing(id: &u64, username: &str, password: &str) -> Self {
+    pub fn from(id: u64, username: String, password: String) -> Self {
         Self {
-            id: id.to_owned(),
-            username: username.to_owned(),
-            password: password.to_owned(),
+            id,
+            username,
+            password,
         }
     }
 

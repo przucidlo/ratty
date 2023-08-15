@@ -1,9 +1,8 @@
 use std::{error::Error, fmt::Display};
 
 #[derive(Debug)]
-pub enum UserInfrastructureError {
-    UserNotFoundError,
-    UserStorageError,
+pub enum WorldInfrastructureError {
+    WorldNotFoundError,
 }
 
 impl Display for UserInfrastructureError {
