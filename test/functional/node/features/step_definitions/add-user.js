@@ -1,33 +1,30 @@
-const { Given, When, Then } = require('@cucumber/cucumber');
+const { Given, When, Then, AfterAll} = require('@cucumber/cucumber');
 const axios = require('axios'); 
 const assert = require('assert');
 
-let username;
-let password;
-let response;
-
 Given('username', function () {
-  username = "test" + Date.now();  
+  this.username = "test" + Date.now();  
 });
 
 Given('password', function () {
-  password = "admin";
+  this.password = "admin";
+});
+
+Given('password is too short', function () {
+  this.password = "";
 });
 
 When('I try to create my account', function () {
-  return axios({
-    method: 'post',
-    url: 'http://10.8.0.1:8080/v1/register', 
-    data: {
-      username: username,
-      password: password
-    },
-    timeout: 3000,
+  return axios.post('http://10.8.0.1:8080/v1/register',{
+    username: this.username,
+    password: this.password
   }).then((r) => {
-    response = r;
+    this.response = r;
+  }).catch((e) => {
+    this.response = e.response;
   })
 });
 
-Then('I should receive a successful response', function () {
-  assert(response.status === 201, "Status was different than 201");
+Then('I should receive a status {int} response', function (int) {
+  assert(this.response.status === int, `Status ${this.response.status} was different than ${int}`);
 });
