@@ -1,4 +1,8 @@
 # Changelog
+
+## (15.08.2023) 0.4.1
+- feat: move storage infrastructure to seaorm
+
 ## (05.08.2023) 0.4.0
 - feat: payload validation
 - feat: error handling
