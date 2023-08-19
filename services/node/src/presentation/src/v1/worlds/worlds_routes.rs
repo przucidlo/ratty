@@ -1,9 +1,9 @@
-use axum::{extract::State, http::StatusCode, routing::post, Router};
+use axum::{http::StatusCode, routing::post, Router};
 use garde::Validate;
 use serde::Deserialize;
 
 use crate::extractors::require_authorization::RequireAuthorization;
-use crate::extractors::validated_json::ValidatedJson;
+use crate::extractors::validate_json::ValidateJson;
 use crate::state::application_state::ApplicationState;
 
 use super::worlds_state::WorldsState;
@@ -22,8 +22,8 @@ pub fn new() -> Router<ApplicationState> {
 }
 
 async fn create_world(
-    RequireAuthorization(user, _): RequireAuthorization<WorldsState>,
-    ValidatedJson(payload): ValidatedJson<CreateWorldDto>,
+    RequireAuthorization(user, state): RequireAuthorization<WorldsState>,
+    ValidateJson(payload): ValidateJson<CreateWorldDto>,
 ) -> StatusCode {
     StatusCode::INTERNAL_SERVER_ERROR
 }

@@ -3,9 +3,7 @@ use axum::{extract::State, http::StatusCode, routing::post, Router};
 use garde::Validate;
 use serde::Deserialize;
 
-use crate::{
-    extractors::validated_json::ValidatedJson, state::application_state::ApplicationState,
-};
+use crate::{extractors::validate_json::ValidateJson, state::application_state::ApplicationState};
 
 use super::registration_state::RegistrationState;
 
@@ -25,7 +23,7 @@ pub fn new() -> Router<ApplicationState> {
 #[axum_macros::debug_handler]
 async fn register(
     State(state): State<RegistrationState>,
-    ValidatedJson(payload): ValidatedJson<RegisterDto>,
+    ValidateJson(payload): ValidateJson<RegisterDto>,
 ) -> StatusCode {
     let user = state
         .user_service
