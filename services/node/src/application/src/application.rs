@@ -9,12 +9,14 @@ use infrastructure::{
 use crate::{
     auth::authentication_service::AuthenticationService,
     authorization::authorization_service::AuthorizationService, user::user_service::UserService,
+    world::world_service::WorldService,
 };
 
 pub struct Application {
     pub authentication_service: Arc<AuthenticationService>,
     pub authorization_service: Arc<AuthorizationService>,
     pub user_service: Arc<UserService>,
+    pub world_service: Arc<WorldService>,
 }
 
 impl Application {
@@ -35,6 +37,8 @@ impl Application {
             hashing_service.clone(),
         ));
 
+        let world_service = Arc::new(WorldService::new(infrastructure.world_repository.clone()));
+
         let authentication_service = Arc::new(AuthenticationService::new(
             user_service.clone(),
             hashing_service.clone(),
@@ -49,6 +53,7 @@ impl Application {
             authorization_service,
             authentication_service,
             user_service,
+            world_service,
         }
     }
 }

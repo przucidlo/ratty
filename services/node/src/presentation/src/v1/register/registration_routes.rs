@@ -3,8 +3,9 @@ use axum::{extract::State, http::StatusCode, routing::post, Router};
 use garde::Validate;
 use serde::Deserialize;
 
-use crate::extractors::validated_json::ValidatedJson;
-use crate::state::ApplicationState;
+use crate::{
+    extractors::validated_json::ValidatedJson, state::application_state::ApplicationState,
+};
 
 use super::registration_state::RegistrationState;
 

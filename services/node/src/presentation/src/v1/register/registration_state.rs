@@ -1,7 +1,8 @@
-use crate::state::ApplicationState;
 use application::user::user_service::UserService;
 use axum::extract::FromRef;
 use std::sync::Arc;
+
+use crate::state::application_state::ApplicationState;
 
 #[derive(Clone)]
 pub struct RegistrationState {

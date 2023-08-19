@@ -9,14 +9,36 @@ pub struct World {
     owner: Option<User>,
 }
 
+impl Default for World {
+    fn default() -> Self {
+        Self {
+            id: 0,
+            name: "".to_owned(),
+            description: "".to_owned(),
+            owner_id: 0,
+            owner: None,
+        }
+    }
+}
+
 impl World {
+    pub fn new(name: String, description: String, owner: User) -> Self {
+        Self {
+            name,
+            description,
+            owner_id: owner.id(),
+            owner: Some(owner),
+            ..Self::default()
+        }
+    }
+
     pub fn from(id: u64, name: String, description: String, owner_id: u64) -> Self {
         Self {
             id,
             name,
             description,
             owner_id,
-            owner: None,
+            ..Self::default()
         }
     }
 
@@ -37,6 +59,10 @@ impl World {
     }
 
     pub fn set_owner(&mut self, owner: Option<User>) {
+        if let Some(owner) = &owner {
+            self.owner_id = owner.id();
+        }
+
         self.owner = owner;
     }
 }

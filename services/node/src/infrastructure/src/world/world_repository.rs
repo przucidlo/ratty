@@ -39,6 +39,7 @@ impl WorldRepository {
         let active_model = world_model::ActiveModel {
             name: Set(world.name().to_owned()),
             description: Set(world.description().to_owned()),
+            owner_id: Set(world.owner_id().to_owned()),
             ..Default::default()
         };
 

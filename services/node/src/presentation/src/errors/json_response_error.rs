@@ -64,6 +64,20 @@ impl JsonResponseError {
         }
     }
 
+    pub fn unauthorized() -> Self {
+        let status = StatusCode::UNAUTHORIZED;
+
+        Self {
+            status: status.as_u16(),
+            message: Value::String(
+                status
+                    .canonical_reason()
+                    .unwrap_or("Unauthorized")
+                    .to_string(),
+            ),
+        }
+    }
+
     pub fn internal_server_error() -> Self {
         Self {
             status: 500,

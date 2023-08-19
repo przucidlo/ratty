@@ -25,6 +25,10 @@ impl UserService {
         self.user_repository.find_one_by_username(username).await
     }
 
+    pub async fn get_user_by_id(&self, id: &u64) -> Result<User, StorageError> {
+        self.user_repository.find_one_by_id(id.to_owned()).await
+    }
+
     pub async fn add_user(&self, username: &str, password: &str) -> Result<User, AddUserError> {
         let user = self.user_repository.find_one_by_username(username).await;
         let hashed_password = self.hashing_service.hash(&password).unwrap();
