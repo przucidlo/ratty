@@ -1,22 +1,83 @@
+use std::str::FromStr;
+
 use crate::user::user::User;
+
+#[derive(Clone)]
+pub enum WorldKind {
+    Public,
+    Private,
+}
 
 pub struct World {
     id: u64,
     name: String,
     description: String,
+    kind: WorldKind,
     owner_id: u64,
 
     owner: Option<User>,
 }
 
+impl Default for World {
+    fn default() -> Self {
+        Self {
+            id: 0,
+            name: "".to_owned(),
+            description: "".to_owned(),
+            kind: WorldKind::Private,
+            owner_id: 0,
+            owner: None,
+        }
+    }
+}
+
+impl FromStr for WorldKind {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "public" => Ok(Self::Public),
+            "private" => Ok(Self::Private),
+            _ => Err(()),
+        }
+    }
+}
+
+impl ToString for WorldKind {
+    fn to_string(&self) -> String {
+        match self {
+            WorldKind::Public => "public".to_owned(),
+            WorldKind::Private => "private".to_owned(),
+        }
+    }
+}
+
 impl World {
-    pub fn from(id: u64, name: String, description: String, owner_id: u64) -> Self {
+    pub fn new(name: String, description: String, kind: WorldKind, owner: User) -> Self {
+        Self {
+            name,
+            description,
+            kind,
+            owner_id: owner.id(),
+            owner: Some(owner),
+            ..Self::default()
+        }
+    }
+
+    pub fn from(
+        id: u64,
+        name: String,
+        description: String,
+        kind: WorldKind,
+        owner_id: u64,
+    ) -> Self {
         Self {
             id,
             name,
             description,
+            kind,
             owner_id,
-            owner: None,
+            ..Self::default()
         }
     }
 
@@ -28,6 +89,10 @@ impl World {
         self.name.as_ref()
     }
 
+    pub fn kind(&self) -> &WorldKind {
+        &self.kind
+    }
+
     pub fn description(&self) -> &str {
         self.description.as_ref()
     }
@@ -37,6 +102,10 @@ impl World {
     }
 
     pub fn set_owner(&mut self, owner: Option<User>) {
+        if let Some(owner) = &owner {
+            self.owner_id = owner.id();
+        }
+
         self.owner = owner;
     }
 }

@@ -1,6 +1,6 @@
 use crate::{errors::storage_error::StorageError, user::user_model};
 
-use super::world_model;
+use super::world_model::{self, ModelWorldKind};
 use domain::world::world::World;
 use sea_orm::{ActiveModelTrait, DatabaseConnection, EntityTrait, Set};
 
@@ -39,6 +39,8 @@ impl WorldRepository {
         let active_model = world_model::ActiveModel {
             name: Set(world.name().to_owned()),
             description: Set(world.description().to_owned()),
+            owner_id: Set(world.owner_id().to_owned()),
+            kind: Set(ModelWorldKind::from(world.kind().to_owned())),
             ..Default::default()
         };
 

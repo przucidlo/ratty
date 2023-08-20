@@ -2,8 +2,9 @@ use application::authorization::authorization_service::Token;
 use axum::{extract::Json, extract::State, http::StatusCode, routing::post, Router};
 use serde::Deserialize;
 
+use crate::state::application_state::ApplicationState;
+
 use super::state::AuthorizationState;
-use crate::state::ApplicationState;
 
 #[derive(Deserialize)]
 pub struct AuthorizeDto {

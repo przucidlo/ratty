@@ -12,7 +12,7 @@ impl Display for StorageError {
             StorageError::EntityNotFoundError => {
                 write!(f, "User not found")
             }
-            StorageError::QueryFailureError(Error) => {
+            StorageError::QueryFailureError(_) => {
                 write!(f, "Unexpected storage error")
             }
         }

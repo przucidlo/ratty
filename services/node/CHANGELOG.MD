@@ -1,5 +1,9 @@
 # Changelog
 
+## (20.08.2023) 0.5.0
+- feat: create worlds
+- feat: protected routes system
+
 ## (15.08.2023) 0.4.1
 - feat: move storage infrastructure to seaorm
 

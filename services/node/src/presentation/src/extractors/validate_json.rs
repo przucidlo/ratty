@@ -12,10 +12,10 @@ use serde_json::{Map, Value};
 
 use crate::errors::json_response_error::JsonResponseError;
 
-pub struct ValidatedJson<T>(pub T);
+pub struct ValidateJson<T>(pub T);
 
 #[async_trait]
-impl<T, S, B> FromRequest<S, B> for ValidatedJson<T>
+impl<T, S, B> FromRequest<S, B> for ValidateJson<T>
 where
     B: HttpBody + Send + 'static,
     B::Data: Send,
