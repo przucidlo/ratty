@@ -3,7 +3,7 @@ use std::sync::Arc;
 use application::application::Application;
 use axum::Router;
 use dotenvy::dotenv;
-use middleware::authentication_middleware::{self, authentication_middleware};
+use middleware::authentication_middleware::authentication_middleware;
 use state::{application_state::ApplicationState, extractors_state::ExtractorsState};
 use v1::{
     authorize::state::AuthorizationState,
@@ -18,6 +18,7 @@ pub mod extractors;
 pub mod middleware;
 pub mod state;
 pub mod v1;
+pub mod validation;
 
 use crate::v1::authorize::routes as AuthorizationRouter;
 

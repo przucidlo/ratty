@@ -1,6 +1,9 @@
 use std::sync::Arc;
 
-use domain::{user::user::User, world::world::World};
+use domain::{
+    user::user::User,
+    world::world::{World, WorldKind},
+};
 use infrastructure::{
     errors::storage_error::StorageError, world::world_repository::WorldRepository,
 };
@@ -14,13 +17,16 @@ impl WorldService {
         Self { world_repository }
     }
 
-    pub fn create_world(
+    pub async fn create_world(
         &self,
         name: &str,
         description: &str,
+        kind: WorldKind,
         user: User,
     ) -> Result<World, StorageError> {
-        let world = World::new(name.to_owned(), description.to_owned(), user);
+        let mut world = World::new(name.to_owned(), description.to_owned(), kind, user);
+
+        world = self.world_repository.insert(world).await?;
 
         Ok(world)
     }

@@ -1,9 +1,18 @@
+use std::str::FromStr;
+
 use crate::user::user::User;
+
+#[derive(Clone)]
+pub enum WorldKind {
+    Public,
+    Private,
+}
 
 pub struct World {
     id: u64,
     name: String,
     description: String,
+    kind: WorldKind,
     owner_id: u64,
 
     owner: Option<User>,
@@ -15,28 +24,58 @@ impl Default for World {
             id: 0,
             name: "".to_owned(),
             description: "".to_owned(),
+            kind: WorldKind::Private,
             owner_id: 0,
             owner: None,
         }
     }
 }
 
+impl FromStr for WorldKind {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "public" => Ok(Self::Public),
+            "private" => Ok(Self::Private),
+            _ => Err(()),
+        }
+    }
+}
+
+impl ToString for WorldKind {
+    fn to_string(&self) -> String {
+        match self {
+            WorldKind::Public => "public".to_owned(),
+            WorldKind::Private => "private".to_owned(),
+        }
+    }
+}
+
 impl World {
-    pub fn new(name: String, description: String, owner: User) -> Self {
+    pub fn new(name: String, description: String, kind: WorldKind, owner: User) -> Self {
         Self {
             name,
             description,
+            kind,
             owner_id: owner.id(),
             owner: Some(owner),
             ..Self::default()
         }
     }
 
-    pub fn from(id: u64, name: String, description: String, owner_id: u64) -> Self {
+    pub fn from(
+        id: u64,
+        name: String,
+        description: String,
+        kind: WorldKind,
+        owner_id: u64,
+    ) -> Self {
         Self {
             id,
             name,
             description,
+            kind,
             owner_id,
             ..Self::default()
         }
@@ -48,6 +87,10 @@ impl World {
 
     pub fn name(&self) -> &str {
         self.name.as_ref()
+    }
+
+    pub fn kind(&self) -> &WorldKind {
+        &self.kind
     }
 
     pub fn description(&self) -> &str {
