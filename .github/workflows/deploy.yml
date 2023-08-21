@@ -35,4 +35,4 @@ jobs:
     - name: Restart service on remote machine 
       working-directory: ./services/node/src/
       run: |
-        ssh -p ${{ secrets.DEPLOY_PORT }} ${{secrets.DEPLOY_USER}}@${{secrets.DEPLOY_HOST}} "systemctl --user stop ${{ env.SERVICE_NAME }} && docker rm ${{ env.SERVICE_NAME }} && docker images -a | grep ${{ env.SERVICE_NAME }} | awk '{print $3}' | xargs docker rmi  && docker load -i ./images/${{env.SERVICE_NAME}}.tar && systemctl --user restart ${{ env.SERVICE_NAME }}" 
+        ssh -p ${{ secrets.DEPLOY_PORT }} ${{secrets.DEPLOY_USER}}@${{secrets.DEPLOY_HOST}} "./deploy.sh" 
