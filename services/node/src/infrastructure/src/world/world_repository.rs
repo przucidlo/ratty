@@ -1,8 +1,8 @@
 use crate::{errors::storage_error::StorageError, user::user_model};
 
 use super::world_model::{self, ModelWorldKind};
-use domain::world::world::World;
-use sea_orm::{ActiveModelTrait, DatabaseConnection, EntityTrait, Set};
+use domain::world::world::{World, WorldKind};
+use sea_orm::{ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, Set};
 
 pub struct WorldRepository {
     db: DatabaseConnection,
@@ -35,6 +35,16 @@ impl WorldRepository {
         }
     }
 
+    pub async fn find_all_public(&self) -> Result<Vec<World>, StorageError> {
+        let mut model = world_model::Entity::find()
+            .filter(world_model::Column::Kind.eq(WorldKind::Public.to_string()))
+            .all(&self.db)
+            .await
+            .map_err(|err| StorageError::QueryFailureError(err))?;
+
+        Ok(model.drain(..).map(|m| m.into()).collect())
+    }
+
     pub async fn insert(&self, world: World) -> Result<World, StorageError> {
         let active_model = world_model::ActiveModel {
             name: Set(world.name().to_owned()),
@@ -47,7 +57,7 @@ impl WorldRepository {
         let model = active_model
             .insert(&self.db)
             .await
-            .map_err(|e| StorageError::QueryFailureError(Box::new(e)))?;
+            .map_err(|e| StorageError::QueryFailureError(e))?;
 
         Ok(model.into())
     }

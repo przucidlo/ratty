@@ -14,7 +14,7 @@ RUN cargo build --release
 
 FROM alpine:3.18.2 AS ratty-prod
 
-RUN apk update && apk add gcc
+RUN apk update && apk add gcc libressl-dev libcrypto3
 
 WORKDIR /opt/ratty/
 

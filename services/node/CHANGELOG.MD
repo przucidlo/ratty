@@ -1,4 +1,7 @@
 # Changelog
+## (21.08.2023) 0.6.0
+- feat: list public worlds 
+- fix: missing packages in docker image 
 
 ## (20.08.2023) 0.5.0
 - feat: create worlds
