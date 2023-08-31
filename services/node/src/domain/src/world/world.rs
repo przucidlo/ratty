@@ -1,8 +1,8 @@
 use std::str::FromStr;
 
 use crate::user::user::User;
+use sqlx::{mysql::MySqlRow, FromRow, Row};
 
-#[derive(Clone)]
 pub enum WorldKind {
     Public,
     Private,
@@ -16,6 +16,25 @@ pub struct World {
     owner_id: u64,
 
     owner: Option<User>,
+}
+
+impl FromRow<'_, MySqlRow> for World {
+    fn from_row(row: &'_ MySqlRow) -> Result<Self, sqlx::Error> {
+        let id: u64 = row.try_get("id")?;
+        let name: String = row.try_get("name")?;
+        let description: String = row.try_get("description")?;
+        let kind: String = row.try_get("kind")?;
+        let owner_id: u64 = row.try_get("owner_id")?;
+
+        Ok(Self {
+            id,
+            name,
+            description,
+            kind: WorldKind::from_str(&kind).unwrap(),
+            owner_id,
+            owner: None,
+        })
+    }
 }
 
 impl Default for World {

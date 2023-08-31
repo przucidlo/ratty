@@ -5,6 +5,9 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Validate, Serialize)]
 pub struct WorldDto {
+    #[garde(skip)]
+    pub id: Option<u64>,
+
     #[garde(length(min = 3))]
     pub name: String,
 
@@ -20,6 +23,7 @@ pub struct WorldDto {
 impl From<World> for WorldDto {
     fn from(value: World) -> Self {
         Self {
+            id: Some(value.id().to_owned()),
             name: value.name().to_owned(),
             description: Some(value.description().to_owned()),
             kind: value.kind().to_owned().to_string(),

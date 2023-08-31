@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use sea_orm::{Database, DatabaseConnection};
+use sqlx::MySqlPool;
 
 use crate::{
     config::{config::Config, config_factory::ConfigFactory},
@@ -17,10 +17,10 @@ pub struct Infrastructure {
 impl Infrastructure {
     pub async fn new() -> Self {
         let config = ConfigFactory::build();
-        let db = Self::create_connection_pool(&config).await;
+        let pool = Self::create_connection_pool_new(&config).await;
 
-        let user_repository = Arc::new(UserRepository::new(db.clone()));
-        let world_repository = Arc::new(WorldRepository::new(db.clone()));
+        let user_repository = Arc::new(UserRepository::new(pool.clone()));
+        let world_repository = Arc::new(WorldRepository::new(pool.clone()));
 
         Self {
             user_repository,
@@ -29,16 +29,9 @@ impl Infrastructure {
         }
     }
 
-    async fn create_connection_pool(config: &Config) -> DatabaseConnection {
-        println!("Connecting to database...");
-
-        match Database::connect(&config.mysql_connection_url).await {
-            Ok(db) => {
-                println!("Connected to database.");
-
-                db
-            }
-            Err(_) => panic!("Could not connect to database."),
-        }
+    async fn create_connection_pool_new(config: &Config) -> MySqlPool {
+        MySqlPool::connect(&config.mysql_connection_url)
+            .await
+            .unwrap()
     }
 }

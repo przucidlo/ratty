@@ -1,11 +1,9 @@
 use std::{error::Error, fmt::Display};
 
-use sea_orm::DbErr;
-
 #[derive(Debug)]
 pub enum StorageError {
     EntityNotFoundError,
-    QueryFailureError(DbErr),
+    QueryFailureError(sqlx::Error),
 }
 
 impl Display for StorageError {

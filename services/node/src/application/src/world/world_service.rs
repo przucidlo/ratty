@@ -18,7 +18,9 @@ impl WorldService {
     }
 
     pub async fn get_public_worlds(&self) -> Result<Vec<World>, StorageError> {
-        self.world_repository.find_all_public().await
+        self.world_repository
+            .find_all_by_kind(WorldKind::Public)
+            .await
     }
 
     pub async fn create_world(

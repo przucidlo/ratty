@@ -1,4 +1,4 @@
-#[derive(Clone)]
+#[derive(sqlx::FromRow, Clone)]
 pub struct User {
     id: u64,
     username: String,

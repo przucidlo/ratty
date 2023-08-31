@@ -1,64 +1,48 @@
-use crate::{errors::storage_error::StorageError, user::user_model};
+use crate::errors::storage_error::StorageError;
 
-use super::world_model::{self, ModelWorldKind};
 use domain::world::world::{World, WorldKind};
-use sea_orm::{ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, Set};
+use sqlx::MySqlPool;
 
 pub struct WorldRepository {
-    db: DatabaseConnection,
+    pool: MySqlPool,
 }
 
 impl WorldRepository {
-    pub fn new(db: DatabaseConnection) -> Self {
-        Self { db }
+    pub fn new(pool: MySqlPool) -> Self {
+        Self { pool }
     }
 
-    pub async fn find_by_id(&self, id: &u64) -> Result<World, StorageError> {
-        let mut model: Vec<(world_model::Model, Vec<user_model::Model>)> =
-            world_model::Entity::find_by_id(id.to_owned())
-                .find_with_related(user_model::Entity)
-                .all(&self.db)
-                .await
-                .map_err(|_| StorageError::EntityNotFoundError)?;
-
-        match model.pop() {
-            Some((model, mut users)) => {
-                let mut world: World = model.into();
-
-                if let Some(owner) = users.pop() {
-                    world.set_owner(owner.into());
-                }
-
-                Ok(world)
-            }
-            None => Err(StorageError::EntityNotFoundError),
-        }
-    }
-
-    pub async fn find_all_public(&self) -> Result<Vec<World>, StorageError> {
-        let mut model = world_model::Entity::find()
-            .filter(world_model::Column::Kind.eq(WorldKind::Public.to_string()))
-            .all(&self.db)
+    pub async fn find_by_id(&self, id: u64) -> Result<World, StorageError> {
+        sqlx::query_as::<_, World>("SELECT * FROM world WHERE id = ? LIMIT 1")
+            .bind(id)
+            .fetch_one(&self.pool)
             .await
-            .map_err(|err| StorageError::QueryFailureError(err))?;
+            .map_err(|_| StorageError::EntityNotFoundError)
+    }
 
-        Ok(model.drain(..).map(|m| m.into()).collect())
+    pub async fn find_all_by_kind(&self, kind: WorldKind) -> Result<Vec<World>, StorageError> {
+        sqlx::query_as::<_, World>("SELECT * FROM world WHERE kind = ? ")
+            .bind(kind.to_string())
+            .fetch_all(&self.pool)
+            .await
+            .map_err(|_| StorageError::EntityNotFoundError)
     }
 
     pub async fn insert(&self, world: World) -> Result<World, StorageError> {
-        let active_model = world_model::ActiveModel {
-            name: Set(world.name().to_owned()),
-            description: Set(world.description().to_owned()),
-            owner_id: Set(world.owner_id().to_owned()),
-            kind: Set(ModelWorldKind::from(world.kind().to_owned())),
-            ..Default::default()
-        };
+        let insert_result = sqlx::query(
+            "INSERT INTO world (name, description, kind, owner_id) VALUES (?, ?, ?, ?)",
+        )
+        .bind(world.name().to_string())
+        .bind(world.description().to_string())
+        .bind(world.kind().to_string())
+        .bind(world.owner_id())
+        .execute(&self.pool)
+        .await;
 
-        let model = active_model
-            .insert(&self.db)
-            .await
-            .map_err(|e| StorageError::QueryFailureError(e))?;
+        if let Ok(insert_result) = insert_result {
+            return Self::find_by_id(&self, insert_result.last_insert_id()).await;
+        }
 
-        Ok(model.into())
+        Err(StorageError::EntityNotFoundError)
     }
 }
