@@ -8,8 +8,9 @@ use infrastructure::{
 
 use crate::{
     auth::authentication_service::AuthenticationService,
-    authorization::authorization_service::AuthorizationService, user::user_service::UserService,
-    world::world_service::WorldService,
+    authorization::authorization_service::AuthorizationService,
+    user::user_service::UserService,
+    world::{world_member_service::WorldMemberService, world_service::WorldService},
 };
 
 pub struct Application {
@@ -17,6 +18,7 @@ pub struct Application {
     pub authorization_service: Arc<AuthorizationService>,
     pub user_service: Arc<UserService>,
     pub world_service: Arc<WorldService>,
+    pub world_member_service: Arc<WorldMemberService>,
 }
 
 impl Application {
@@ -37,7 +39,10 @@ impl Application {
             hashing_service.clone(),
         ));
 
-        let world_service = Arc::new(WorldService::new(infrastructure.world_repository.clone()));
+        let world_service = Arc::new(WorldService::new(
+            infrastructure.world_repository.clone(),
+            infrastructure.world_member_repository.clone(),
+        ));
 
         let authentication_service = Arc::new(AuthenticationService::new(
             user_service.clone(),
@@ -49,11 +54,16 @@ impl Application {
             authentication_service.clone(),
         ));
 
+        let world_member_service = Arc::new(WorldMemberService::new(
+            infrastructure.world_member_repository.clone(),
+        ));
+
         Self {
             authorization_service,
             authentication_service,
             user_service,
             world_service,
+            world_member_service,
         }
     }
 }

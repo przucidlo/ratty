@@ -1,4 +1,10 @@
 # Changelog
+## (14.09.2023) 0.8.0
+- feat: join world
+
+## (31.08.2023) 0.7.0
+- feat: chore replace sea-orm with sqlx 
+
 ## (21.08.2023) 0.6.0
 - feat: list public worlds 
 - fix: missing packages in docker image 

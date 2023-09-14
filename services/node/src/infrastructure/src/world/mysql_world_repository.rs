@@ -1,34 +1,39 @@
-use crate::errors::storage_error::StorageError;
-
-use domain::world::world::{World, WorldKind};
+use async_trait::async_trait;
+use domain::{
+    common::repository_error::RepositoryError,
+    world::{world::World, world_kind::WorldKind, world_repository::WorldRepository},
+};
 use sqlx::MySqlPool;
 
-pub struct WorldRepository {
+pub struct MySqlWorldRepository {
     pool: MySqlPool,
 }
 
-impl WorldRepository {
+impl MySqlWorldRepository {
     pub fn new(pool: MySqlPool) -> Self {
         Self { pool }
     }
+}
 
-    pub async fn find_by_id(&self, id: u64) -> Result<World, StorageError> {
+#[async_trait]
+impl WorldRepository for MySqlWorldRepository {
+    async fn find_by_id(&self, id: u64) -> Result<World, RepositoryError> {
         sqlx::query_as::<_, World>("SELECT * FROM world WHERE id = ? LIMIT 1")
             .bind(id)
             .fetch_one(&self.pool)
             .await
-            .map_err(|_| StorageError::EntityNotFoundError)
+            .map_err(|_| RepositoryError::EntityNotFoundError)
     }
 
-    pub async fn find_all_by_kind(&self, kind: WorldKind) -> Result<Vec<World>, StorageError> {
+    async fn find_all_by_kind(&self, kind: WorldKind) -> Result<Vec<World>, RepositoryError> {
         sqlx::query_as::<_, World>("SELECT * FROM world WHERE kind = ? ")
             .bind(kind.to_string())
             .fetch_all(&self.pool)
             .await
-            .map_err(|_| StorageError::EntityNotFoundError)
+            .map_err(|e| RepositoryError::QueryFailureError(e))
     }
 
-    pub async fn insert(&self, world: World) -> Result<World, StorageError> {
+    async fn insert(&self, world: World) -> Result<World, RepositoryError> {
         let insert_result = sqlx::query(
             "INSERT INTO world (name, description, kind, owner_id) VALUES (?, ?, ?, ?)",
         )
@@ -43,6 +48,8 @@ impl WorldRepository {
             return Self::find_by_id(&self, insert_result.last_insert_id()).await;
         }
 
-        Err(StorageError::EntityNotFoundError)
+        Err(RepositoryError::QueryFailureError(
+            insert_result.unwrap_err(),
+        ))
     }
 }
