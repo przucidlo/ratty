@@ -1,1 +1,1 @@
-pub mod world_repository;
+pub mod mysql_world_repository;

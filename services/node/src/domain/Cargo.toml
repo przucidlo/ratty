@@ -7,3 +7,5 @@ edition = "2021"
 
 [dependencies]
 sqlx = "0.7.1"
+async-trait = "0.1.73"
+

@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use application::application::Application;
+use application::{application::Application, user::user_service};
 use axum::Router;
 use dotenvy::dotenv;
 use middleware::authentication_middleware::authentication_middleware;
@@ -8,6 +8,7 @@ use state::{application_state::ApplicationState, extractors_state::ExtractorsSta
 use v1::{
     authorize::state::AuthorizationState,
     register::{registration_routes, registration_state::RegistrationState},
+    users::{users_routes, users_state::UsersState},
     worlds::{worlds_routes, worlds_state::WorldsState},
 };
 
@@ -40,8 +41,13 @@ async fn main() {
             user_service: application.user_service.clone(),
         },
         worlds_state: WorldsState {
-            extractors_state,
+            extractors_state: extractors_state.clone(),
             world_service: application.world_service.clone(),
+        },
+        users_state: UsersState {
+            extractors_state: extractors_state.clone(),
+            user_service: application.user_service.clone(),
+            world_member_service: application.world_member_service.clone(),
         },
     };
 
@@ -49,6 +55,7 @@ async fn main() {
         .nest("/v1/authorize", AuthorizationRouter::new())
         .nest("/v1/register", registration_routes::new())
         .nest("/v1/worlds", worlds_routes::new())
+        .nest("/v1/users", users_routes::new())
         .layer(axum_middleware::from_fn(authentication_middleware))
         .with_state(state);
 

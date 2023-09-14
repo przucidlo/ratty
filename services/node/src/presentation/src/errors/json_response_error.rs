@@ -85,6 +85,20 @@ impl JsonResponseError {
         }
     }
 
+    pub fn not_found_error(message: Option<&str>) -> Self {
+        Self {
+            status: 400,
+            message: Value::String(message.unwrap_or("Not Found Error").to_string()),
+        }
+    }
+
+    pub fn forbidden(message: Option<&str>) -> Self {
+        Self {
+            status: 403,
+            message: Value::String(message.unwrap_or("Forbidden").to_string()),
+        }
+    }
+
     pub fn hide_message(&mut self) {
         let status_code =
             StatusCode::from_u16(self.status).unwrap_or(StatusCode::INTERNAL_SERVER_ERROR);

@@ -3,19 +3,15 @@ use std::str::FromStr;
 use crate::user::user::User;
 use sqlx::{mysql::MySqlRow, FromRow, Row};
 
-pub enum WorldKind {
-    Public,
-    Private,
-}
+use super::{world_error::JoinWorldError, world_kind::WorldKind, world_member::WorldMember};
 
+#[derive(Debug)]
 pub struct World {
     id: u64,
     name: String,
     description: String,
     kind: WorldKind,
     owner_id: u64,
-
-    owner: Option<User>,
 }
 
 impl FromRow<'_, MySqlRow> for World {
@@ -32,7 +28,6 @@ impl FromRow<'_, MySqlRow> for World {
             description,
             kind: WorldKind::from_str(&kind).unwrap(),
             owner_id,
-            owner: None,
         })
     }
 }
@@ -45,53 +40,13 @@ impl Default for World {
             description: "".to_owned(),
             kind: WorldKind::Private,
             owner_id: 0,
-            owner: None,
-        }
-    }
-}
-
-impl FromStr for WorldKind {
-    type Err = ();
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "public" => Ok(Self::Public),
-            "private" => Ok(Self::Private),
-            _ => Err(()),
-        }
-    }
-}
-
-impl ToString for WorldKind {
-    fn to_string(&self) -> String {
-        match self {
-            WorldKind::Public => "public".to_owned(),
-            WorldKind::Private => "private".to_owned(),
         }
     }
 }
 
 impl World {
-    pub fn new(name: String, description: String, kind: WorldKind, owner: User) -> Self {
+    pub fn new(name: String, description: String, kind: WorldKind, owner_id: u64) -> Self {
         Self {
-            name,
-            description,
-            kind,
-            owner_id: owner.id(),
-            owner: Some(owner),
-            ..Self::default()
-        }
-    }
-
-    pub fn from(
-        id: u64,
-        name: String,
-        description: String,
-        kind: WorldKind,
-        owner_id: u64,
-    ) -> Self {
-        Self {
-            id,
             name,
             description,
             kind,
@@ -120,11 +75,75 @@ impl World {
         self.owner_id
     }
 
-    pub fn set_owner(&mut self, owner: Option<User>) {
-        if let Some(owner) = &owner {
-            self.owner_id = owner.id();
+    pub fn change_owner(&mut self, owner: User) {
+        self.owner_id = owner.id();
+    }
+
+    pub fn join(&self, user_id: u64, is_world_member: bool) -> Result<WorldMember, JoinWorldError> {
+        if is_world_member {
+            return Err(JoinWorldError::WorldAlreadyJoinedError);
         }
 
-        self.owner = owner;
+        if matches!(self.kind, WorldKind::Private) && self.owner_id != user_id {
+            return Err(JoinWorldError::WorldRequiresInvitationError);
+        }
+
+        Ok(WorldMember::new(user_id, self.id))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn should_not_join_a_private_world() {
+        let world = World {
+            kind: WorldKind::Private,
+            ..World::default()
+        };
+
+        assert_eq!(
+            matches!(
+                world.join(111, false).unwrap_err(),
+                JoinWorldError::WorldRequiresInvitationError
+            ),
+            true
+        );
+    }
+
+    #[test]
+    fn should_join_private_world_only_as_owner() {
+        let owner_id = 111;
+        let world = World {
+            kind: WorldKind::Private,
+            owner_id,
+            ..World::default()
+        };
+
+        assert_eq!(world.join(owner_id, false).is_ok(), true);
+    }
+
+    #[test]
+    fn should_not_join_as_existing_member() {
+        let world = World::default();
+
+        assert_eq!(
+            matches!(
+                world.join(111, true).unwrap_err(),
+                JoinWorldError::WorldAlreadyJoinedError
+            ),
+            true
+        );
+    }
+
+    #[test]
+    fn should_join_a_world() {
+        let world = World {
+            kind: WorldKind::Public,
+            ..World::default()
+        };
+
+        assert_eq!(world.join(1, false).is_ok(), true);
     }
 }
