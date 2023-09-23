@@ -5,6 +5,7 @@ use axum::Router;
 use dotenvy::dotenv;
 use middleware::authentication_middleware::authentication_middleware;
 use state::{application_state::ApplicationState, extractors_state::ExtractorsState};
+use tower_http::cors::CorsLayer;
 use v1::{
     authorize::state::AuthorizationState,
     register::{registration_routes, registration_state::RegistrationState},
@@ -57,6 +58,7 @@ async fn main() {
         .nest("/v1/worlds", worlds_routes::new())
         .nest("/v1/users", users_routes::new())
         .layer(axum_middleware::from_fn(authentication_middleware))
+        .layer(CorsLayer::permissive())
         .with_state(state);
 
     axum::Server::bind(&"0.0.0.0:8080".parse().unwrap())

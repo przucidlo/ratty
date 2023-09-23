@@ -1,4 +1,7 @@
 # Changelog
+## (23.09.2023) 0.8.1
+- feat: add cors policy 
+
 ## (14.09.2023) 0.8.0
 - feat: join world
 
